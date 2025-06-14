@@ -1,3 +1,22 @@
+#instalar requirements.txt para o deploy
+import subprocess
+import sys
+
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    install('matplotlib')
+    import matplotlib.pyplot as plt
+
+try:
+    import seaborn as sns
+except ImportError:
+    install('seaborn')
+    import seaborn as sns
+
 import streamlit as st
 import pandas as pd
 import numpy as np
