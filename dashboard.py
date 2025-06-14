@@ -171,21 +171,7 @@ def load_data():
                               'PhysicalStatus', 'ChronicDiseases', 'MonthlySalary', 'Decision'])
         return df
     except:
-        # Generate example data if file doesn't exist
-        np.random.seed(42)
-        n_samples = 1000
-        data = {
-            'Gender': np.random.randint(0, 2, n_samples),
-            'Age': np.random.randint(18, 70, n_samples),
-            'MaritalStatus': np.random.randint(0, 2, n_samples),
-            'Dependents': np.random.randint(0, 4, n_samples),
-            'PhysicalStatus': np.random.randint(0, 3, n_samples),
-            'ChronicDiseases': np.random.randint(0, 3, n_samples),
-            'MonthlySalary': np.random.randint(1000, 5000, n_samples),
-            'Decision': np.random.randint(0, 2, n_samples)
-        }
-        return pd.DataFrame(data)
-
+        print("Failed to load data.")
 def calculate_risk_score(row):
     """Calculate risk score based on the 50-point rule"""
     score = 0
