@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -154,6 +153,7 @@ def load_data():
         return df
     except:
         print("Failed to load data.")
+
 def calculate_risk_score(row):
     """Calculate risk score based on the 50-point rule"""
     score = 0
@@ -264,7 +264,7 @@ def main():
                         names=['Rejeita', 'Aceita'], 
                         title="Distribuição de Decisões",
                         color_discrete_sequence=['#ff7f7f', '#90ee90'])
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="decision_distribution_pie")
         
         with col2:
             st.subheader("📊 Decisões por Faixa Etária")
@@ -279,7 +279,7 @@ def main():
             fig = px.bar(age_decision, x='AgeGroup', y='Count', color='Decision',
                         title="Decisões por Faixa Etária",
                         color_discrete_sequence=['#ff7f7f', '#90ee90'])
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="age_decision_bar")
     
     # ==============================================
     # TAB 2: DEMOGRAPHICS
@@ -294,7 +294,7 @@ def main():
                            title="Relação Idade vs Salário",
                            color_discrete_map={0: '#ff7f7f', 1: '#90ee90'},
                            labels={'Decision': 'Decisão'})
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="age_salary_scatter")
         
         with col2:
             st.subheader("👨‍👩‍👧‍👦 Dependentes vs Decisão")
@@ -304,7 +304,7 @@ def main():
             fig = px.bar(dep_decision, x='Dependents', y='Count', color='Decision',
                         title="Decisões por Número de Dependentes",
                         color_discrete_sequence=['#ff7f7f', '#90ee90'])
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="dependents_decision_bar")
         
         # Correlation matrix
         st.subheader("🔗 Matriz de Correlação")
@@ -316,7 +316,7 @@ def main():
                        aspect="auto",
                        color_continuous_scale='RdBu_r',
                        title="Matriz de Correlação")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="correlation_matrix")
     
     # ==============================================
     # TAB 3: RISK ANALYSIS
@@ -342,7 +342,7 @@ def main():
                              title="Distribuição dos Scores de Risco")
             fig.add_vline(x=50, line_dash="dash", line_color="red", 
                          annotation_text="Limite (50 pontos)")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="risk_score_distribution")
         
         with col2:
             st.subheader("🎯 Score vs Decisão")
@@ -354,7 +354,7 @@ def main():
                     ticktext=['Rejeita', 'Aceita']
                 )
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="risk_score_decision_box")
         
         # Analysis by chronic conditions
         st.subheader("🏥 Análise por Condições Crônicas")
@@ -367,7 +367,7 @@ def main():
         fig = px.bar(chronic_analysis, x='ChronicDiseases', y='Count', color='Decision',
                     title="Decisões por Condições Crônicas",
                     color_discrete_sequence=['#ff7f7f', '#90ee90'])
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="chronic_diseases_analysis")
     
     # ==============================================
     # TAB 4: BAYESIAN MODEL
@@ -414,7 +414,7 @@ def main():
                        x=['Rejeita', 'Aceita'],
                        y=['Rejeita', 'Aceita'],
                        title="Matriz de Confusão")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="confusion_matrix")
         
         # Interactive prediction section
         st.subheader("🎯 Predição Interativa")
@@ -521,7 +521,7 @@ def main():
                        x=['Rejeita', 'Aceita'],
                        y=['Rejeita', 'Aceita'],
                        title="Matriz de Confusão")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="model_confusion_matrix")
         
         # Classification report - ensuring both classes are present
         report = classification_report(y, predictions, output_dict=True, target_names=['Rejeita', 'Aceita'])
@@ -546,7 +546,6 @@ def main():
         """)
         
         # 2. Feature Selection
-                # 2. Feature Selection
         st.markdown("---")
         st.markdown("### 2️⃣ Seleção de Variáveis")
         
@@ -596,14 +595,14 @@ def main():
                 range=[0, 1]  # Set y-axis from 0 to 1 for percentage
             )
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="feature_selection_accuracy")
         
         # Correlations
         corr_matrix = filtered_df[features + ['Decision']].corr()['Decision'].drop('Decision')
         fig = px.bar(corr_matrix, 
                     title='Correlação com Decisão',
                     labels={'index':'Feature', 'value':'Correlação'})
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="feature_correlation")
         
         st.markdown(f"""
         **Análise:**
@@ -635,7 +634,7 @@ def main():
                     labels={'x':'Tipo de Variável', 'y':'Acurácia'},
                     title='Performance: Contínuas vs Discretas',
                     text=[f"{cont_acc:.1%}", f"{disc_acc:.1%}"])
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="discrete_vs_continuous")
         
         st.markdown(f"""
         **Análise:**
@@ -672,7 +671,7 @@ def main():
                     labels={'p-value':'Valor-p'},
                     text=['Normal' if x else 'Não-normal' for x in normality_df['Normal']])
         fig.add_hline(y=0.05, line_dash="dash", line_color="red")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="normality_test")
         
         st.markdown("""
         **Análise:**
