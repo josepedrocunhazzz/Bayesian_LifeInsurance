@@ -11,7 +11,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # ==============================================
-# PAGE CONFIGURATION (SHOULD BE FIRST STREAMLIT COMMAND)
+# PAGE CONFIGURATION 
 # ==============================================
 st.set_page_config(
     page_title="Dashboard - Seguro de Vida",
@@ -152,19 +152,8 @@ def load_data():
                               'PhysicalStatus', 'ChronicDiseases', 'MonthlySalary', 'Decision'])
         return df
     except:
-        # Generate example data if file doesn't exist
-        np.random.seed(42)
-        n_samples = 1000
-        data = {
-            'Gender': np.random.randint(0, 2, n_samples),
-            'Age': np.random.randint(18, 70, n_samples),
-            'MaritalStatus': np.random.randint(0, 2, n_samples),
-            'Dependents': np.random.randint(0, 4, n_samples),
-            'PhysicalStatus': np.random.randint(0, 3, n_samples),
-            'ChronicDiseases': np.random.randint(0, 3, n_samples),
-            'MonthlySalary': np.random.randint(1000, 5000, n_samples),
-            'Decision': np.random.randint(0, 2, n_samples)
-        }
+        print("Real data not found")
+        
         return pd.DataFrame(data)
 
 def calculate_risk_score(row):
@@ -233,6 +222,11 @@ def main():
         (df['Gender'].isin(gender_filter))
     ]
     
+    # Check if filtered data is empty
+    if filtered_df.empty:
+        st.warning("⚠️ Nenhum dado encontrado com os filtros selecionados. Ajuste os filtros e tente novamente.")
+        return
+    
     # Main tabs
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Visão Geral", "👥 Demografia", "⚠️ Análise de Risco", "🤖 Modelo Bayesiano", "🔍 Análise do Modelo"])
     
@@ -248,19 +242,19 @@ def main():
             st.markdown('</div>', unsafe_allow_html=True)
         
         with col2:
-            acceptance_rate = (filtered_df['Decision'].sum() / len(filtered_df)) * 100
+            acceptance_rate = (filtered_df['Decision'].sum() / len(filtered_df)) * 100 if len(filtered_df) > 0 else 0
             st.markdown('<div class="metric-container">', unsafe_allow_html=True)
             st.metric("Taxa de Aceitação", f"{acceptance_rate:.1f}%")
             st.markdown('</div>', unsafe_allow_html=True)
         
         with col3:
-            avg_age = filtered_df['Age'].mean()
+            avg_age = filtered_df['Age'].mean() if len(filtered_df) > 0 else 0
             st.markdown('<div class="metric-container warning-metric">', unsafe_allow_html=True)
             st.metric("Idade Média", f"{avg_age:.1f}")
             st.markdown('</div>', unsafe_allow_html=True)
         
         with col4:
-            avg_salary = filtered_df['MonthlySalary'].mean()
+            avg_salary = filtered_df['MonthlySalary'].mean() if len(filtered_df) > 0 else 0
             st.markdown('<div class="metric-container error-metric">', unsafe_allow_html=True)
             st.metric("Salário Médio", f"€{avg_salary:.0f}")
             st.markdown('</div>', unsafe_allow_html=True)
@@ -273,11 +267,15 @@ def main():
         with col1:
             st.subheader("📈 Distribuição de Decisões")
             decision_counts = filtered_df['Decision'].value_counts()
-            fig = px.pie(values=decision_counts.values, 
-                        names=['Rejeita', 'Aceita'], 
-                        title="Distribuição de Decisões",
-                        color_discrete_sequence=['#ff7f7f', '#90ee90'])
-            st.plotly_chart(fig, use_container_width=True)
+            
+            if not decision_counts.empty:
+                fig = px.pie(values=decision_counts.values, 
+                            names=['Rejeita', 'Aceita'], 
+                            title="Distribuição de Decisões",
+                            color_discrete_sequence=['#ff7f7f', '#90ee90'])
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("Nenhum dado disponível para exibir o gráfico.")
         
         with col2:
             st.subheader("📊 Decisões por Faixa Etária")
@@ -289,10 +287,13 @@ def main():
             age_decision = filtered_df.groupby(['AgeGroup', 'Decision']).size().reset_index(name='Count')
             age_decision['Decision'] = age_decision['Decision'].map({0: 'Rejeita', 1: 'Aceita'})
             
-            fig = px.bar(age_decision, x='AgeGroup', y='Count', color='Decision',
-                        title="Decisões por Faixa Etária",
-                        color_discrete_sequence=['#ff7f7f', '#90ee90'])
-            st.plotly_chart(fig, use_container_width=True)
+            if not age_decision.empty:
+                fig = px.bar(age_decision, x='AgeGroup', y='Count', color='Decision',
+                            title="Decisões por Faixa Etária",
+                            color_discrete_sequence=['#ff7f7f', '#90ee90'])
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("Nenhum dado disponível para exibir o gráfico.")
     
     # ==============================================
     # TAB 2: DEMOGRAPHICS
@@ -302,34 +303,43 @@ def main():
         
         with col1:
             st.subheader("🔍 Scatter: Idade vs Salário")
-            fig = px.scatter(filtered_df, x='Age', y='MonthlySalary', 
-                           color='Decision', 
-                           title="Relação Idade vs Salário",
-                           color_discrete_map={0: '#ff7f7f', 1: '#90ee90'},
-                           labels={'Decision': 'Decisão'})
-            st.plotly_chart(fig, use_container_width=True)
+            if not filtered_df.empty:
+                fig = px.scatter(filtered_df, x='Age', y='MonthlySalary', 
+                               color='Decision', 
+                               title="Relação Idade vs Salário",
+                               color_discrete_map={0: '#ff7f7f', 1: '#90ee90'},
+                               labels={'Decision': 'Decisão'})
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("Nenhum dado disponível para exibir o gráfico.")
         
         with col2:
             st.subheader("👨‍👩‍👧‍👦 Dependentes vs Decisão")
             dep_decision = filtered_df.groupby(['Dependents', 'Decision']).size().reset_index(name='Count')
             dep_decision['Decision'] = dep_decision['Decision'].map({0: 'Rejeita', 1: 'Aceita'})
             
-            fig = px.bar(dep_decision, x='Dependents', y='Count', color='Decision',
-                        title="Decisões por Número de Dependentes",
-                        color_discrete_sequence=['#ff7f7f', '#90ee90'])
-            st.plotly_chart(fig, use_container_width=True)
+            if not dep_decision.empty:
+                fig = px.bar(dep_decision, x='Dependents', y='Count', color='Decision',
+                            title="Decisões por Número de Dependentes",
+                            color_discrete_sequence=['#ff7f7f', '#90ee90'])
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("Nenhum dado disponível para exibir o gráfico.")
         
         # Correlation matrix
         st.subheader("🔗 Matriz de Correlação")
-        corr_matrix = filtered_df[['Age', 'MonthlySalary', 'Dependents', 'PhysicalStatus', 
-                                 'ChronicDiseases', 'Decision', 'RiskScore']].corr()
-        
-        fig = px.imshow(corr_matrix, 
-                       text_auto=True, 
-                       aspect="auto",
-                       color_continuous_scale='RdBu_r',
-                       title="Matriz de Correlação")
-        st.plotly_chart(fig, use_container_width=True)
+        if not filtered_df.empty:
+            corr_matrix = filtered_df[['Age', 'MonthlySalary', 'Dependents', 'PhysicalStatus', 
+                                     'ChronicDiseases', 'Decision', 'RiskScore']].corr()
+            
+            fig = px.imshow(corr_matrix, 
+                           text_auto=True, 
+                           aspect="auto",
+                           color_continuous_scale='RdBu_r',
+                           title="Matriz de Correlação")
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.warning("Nenhum dado disponível para exibir a matriz de correlação.")
     
     # ==============================================
     # TAB 3: RISK ANALYSIS
@@ -351,42 +361,55 @@ def main():
         
         with col1:
             st.subheader("📊 Distribuição de Scores")
-            fig = px.histogram(filtered_df, x='RiskScore', nbins=20,
-                             title="Distribuição dos Scores de Risco")
-            fig.add_vline(x=50, line_dash="dash", line_color="red", 
-                         annotation_text="Limite (50 pontos)")
-            st.plotly_chart(fig, use_container_width=True)
+            if not filtered_df.empty:
+                fig = px.histogram(filtered_df, x='RiskScore', nbins=20,
+                                 title="Distribuição dos Scores de Risco")
+                fig.add_vline(x=50, line_dash="dash", line_color="red", 
+                             annotation_text="Limite (50 pontos)")
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("Nenhum dado disponível para exibir o gráfico.")
         
         with col2:
             st.subheader("🎯 Score vs Decisão")
-            fig = px.box(filtered_df, x='Decision', y='RiskScore',
-                        title="Scores por Decisão")
-            fig.update_layout(
-                xaxis=dict(
-                    tickvals=[0, 1],
-                    ticktext=['Rejeita', 'Aceita']
+            if not filtered_df.empty:
+                fig = px.box(filtered_df, x='Decision', y='RiskScore',
+                            title="Scores por Decisão")
+                fig.update_layout(
+                    xaxis=dict(
+                        tickvals=[0, 1],
+                        ticktext=['Rejeita', 'Aceita']
+                    )
                 )
-            )
-            st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("Nenhum dado disponível para exibir o gráfico.")
         
         # Analysis by chronic conditions
         st.subheader("🏥 Análise por Condições Crônicas")
-        chronic_analysis = filtered_df.groupby(['ChronicDiseases', 'Decision']).size().reset_index(name='Count')
-        chronic_analysis['ChronicDiseases'] = chronic_analysis['ChronicDiseases'].map({
-            0: 'Nenhuma', 1: 'Moderada', 2: 'Severa'
-        })
-        chronic_analysis['Decision'] = chronic_analysis['Decision'].map({0: 'Rejeita', 1: 'Aceita'})
-        
-        fig = px.bar(chronic_analysis, x='ChronicDiseases', y='Count', color='Decision',
-                    title="Decisões por Condições Crônicas",
-                    color_discrete_sequence=['#ff7f7f', '#90ee90'])
-        st.plotly_chart(fig, use_container_width=True)
+        if not filtered_df.empty:
+            chronic_analysis = filtered_df.groupby(['ChronicDiseases', 'Decision']).size().reset_index(name='Count')
+            chronic_analysis['ChronicDiseases'] = chronic_analysis['ChronicDiseases'].map({
+                0: 'Nenhuma', 1: 'Moderada', 2: 'Severa'
+            })
+            chronic_analysis['Decision'] = chronic_analysis['Decision'].map({0: 'Rejeita', 1: 'Aceita'})
+            
+            fig = px.bar(chronic_analysis, x='ChronicDiseases', y='Count', color='Decision',
+                        title="Decisões por Condições Crônicas",
+                        color_discrete_sequence=['#ff7f7f', '#90ee90'])
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.warning("Nenhum dado disponível para exibir o gráfico.")
     
     # ==============================================
     # TAB 4: BAYESIAN MODEL
     # ==============================================
     with tab4:
         st.subheader("🤖 Modelo Bayesiano Naive Bayes")
+        
+        if filtered_df.empty:
+            st.warning("Nenhum dado disponível para treinar o modelo.")
+            return
         
         # Prepare data for the model
         features = ['Gender', 'Age', 'MaritalStatus', 'Dependents', 
@@ -505,6 +528,10 @@ def main():
     with tab5:
         st.subheader("🔍 Análise Detalhada do Modelo")
         
+        if filtered_df.empty:
+            st.warning("Nenhum dado disponível para analisar o modelo.")
+            return
+        
         # Prepare data for the model
         features = ['Gender', 'Age', 'MaritalStatus', 'Dependents', 
                    'PhysicalStatus', 'ChronicDiseases', 'MonthlySalary']
@@ -559,7 +586,6 @@ def main():
         """)
         
         # 2. Feature Selection
-                # 2. Feature Selection
         st.markdown("---")
         st.markdown("### 2️⃣ Seleção de Variáveis")
         
@@ -867,7 +893,7 @@ def main():
         4. Custo computacional maior que Naive Bayes tradicional
         """)
         
-        # Update recommendations section (now section 6)
+        # Update recommendations section
         st.markdown("---")
         st.markdown("### 6️⃣ Recomendações e Melhorias")
         
