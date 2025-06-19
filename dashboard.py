@@ -861,7 +861,6 @@ def main():
         st.markdown("""
         **Recomendações para Melhoria do Modelo:**
         1. **Modelagem de Variáveis Contínuas:**
-           - Implementar GMM para Age e MonthlySalary
            - Considerar distribuição log-normal para salários
         2. **Seleção de Features:** 
            - Manter Age, ChronicDiseases, MonthlySalary e Dependentes
