@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -227,12 +226,13 @@ def main():
     
     # Apply filters
     filtered_df = df[
-        (df['Age'] >= age_range[0]) & 
-        (df['Age'] <= age_range[1]) &
-        (df['MonthlySalary'] >= salary_range[0]) & 
-        (df['MonthlySalary'] <= salary_range[1]) &
-        (df['Gender'].isin(gender_filter))
-    ]
+    (df['Age'] >= age_range[0]) & 
+    (df['Age'] <= age_range[1]) &
+    (df['MonthlySalary'] >= salary_range[0]) & 
+    (df['MonthlySalary'] <= salary_range[1]) &
+    (df['Gender'].isin(gender_filter))
+    ].copy()
+
     
     # Main tabs
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Visão Geral", "👥 Demografia", "⚠️ Análise de Risco", "🤖 Modelo Bayesiano", "🔍 Análise do Modelo"])
@@ -278,7 +278,7 @@ def main():
                         names=['Rejeita', 'Aceita'], 
                         title="Distribuição de Decisões",
                         color_discrete_sequence=['#ff7f7f', '#90ee90'])
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="decision_pie_chart")
         
         with col2:
             st.subheader("📊 Decisões por Faixa Etária")
@@ -293,7 +293,7 @@ def main():
             fig = px.bar(age_decision, x='AgeGroup', y='Count', color='Decision',
                         title="Decisões por Faixa Etária",
                         color_discrete_sequence=['#ff7f7f', '#90ee90'])
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="age_decision_bar")
     
     # ==============================================
     # TAB 2: DEMOGRAPHICS
@@ -308,7 +308,7 @@ def main():
                            title="Relação Idade vs Salário",
                            color_discrete_map={0: '#ff7f7f', 1: '#90ee90'},
                            labels={'Decision': 'Decisão'})
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="age_salary_scatter")
         
         with col2:
             st.subheader("👨‍👩‍👧‍👦 Dependentes vs Decisão")
@@ -318,7 +318,7 @@ def main():
             fig = px.bar(dep_decision, x='Dependents', y='Count', color='Decision',
                         title="Decisões por Número de Dependentes",
                         color_discrete_sequence=['#ff7f7f', '#90ee90'])
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="dependents_decision_bar")
         
         # Correlation matrix
         st.subheader("🔗 Matriz de Correlação")
@@ -330,7 +330,7 @@ def main():
                        aspect="auto",
                        color_continuous_scale='RdBu_r',
                        title="Matriz de Correlação")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="correlation_matrix")
     
     # ==============================================
     # TAB 3: RISK ANALYSIS
@@ -356,7 +356,7 @@ def main():
                              title="Distribuição dos Scores de Risco")
             fig.add_vline(x=50, line_dash="dash", line_color="red", 
                          annotation_text="Limite (50 pontos)")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="risk_score_hist")
         
         with col2:
             st.subheader("🎯 Score vs Decisão")
@@ -368,7 +368,7 @@ def main():
                     ticktext=['Rejeita', 'Aceita']
                 )
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="risk_score_box")
         
         # Analysis by chronic conditions
         st.subheader("🏥 Análise por Condições Crônicas")
@@ -381,7 +381,7 @@ def main():
         fig = px.bar(chronic_analysis, x='ChronicDiseases', y='Count', color='Decision',
                     title="Decisões por Condições Crônicas",
                     color_discrete_sequence=['#ff7f7f', '#90ee90'])
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="chronic_analysis_bar")
     
     # ==============================================
     # TAB 4: BAYESIAN MODEL
@@ -428,7 +428,7 @@ def main():
                        x=['Rejeita', 'Aceita'],
                        y=['Rejeita', 'Aceita'],
                        title="Matriz de Confusão")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="confusion_matrix")
         
         # Interactive prediction section
         st.subheader("🎯 Predição Interativa")
@@ -535,7 +535,7 @@ def main():
                        x=['Rejeita', 'Aceita'],
                        y=['Rejeita', 'Aceita'],
                        title="Matriz de Confusão")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="model_confusion_matrix")
         
         # Classification report - ensuring both classes are present
         report = classification_report(y, predictions, output_dict=True, target_names=['Rejeita', 'Aceita'])
@@ -560,7 +560,6 @@ def main():
         """)
         
         # 2. Feature Selection
-                # 2. Feature Selection
         st.markdown("---")
         st.markdown("### 2️⃣ Seleção de Variáveis")
         
@@ -610,14 +609,14 @@ def main():
                 range=[0, 1]  # Set y-axis from 0 to 1 for percentage
             )
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="feature_selection_bar")
         
         # Correlations
         corr_matrix = filtered_df[features + ['Decision']].corr()['Decision'].drop('Decision')
         fig = px.bar(corr_matrix, 
                     title='Correlação com Decisão',
                     labels={'index':'Feature', 'value':'Correlação'})
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="feature_correlation_bar")
         
         st.markdown(f"""
         **Análise:**
@@ -649,7 +648,7 @@ def main():
                     labels={'x':'Tipo de Variável', 'y':'Acurácia'},
                     title='Performance: Contínuas vs Discretas',
                     text=[f"{cont_acc:.1%}", f"{disc_acc:.1%}"])
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="discrete_vs_continuous_bar")
         
         st.markdown(f"""
         **Análise:**
@@ -686,7 +685,7 @@ def main():
                     labels={'p-value':'Valor-p'},
                     text=['Normal' if x else 'Não-normal' for x in normality_df['Normal']])
         fig.add_hline(y=0.05, line_dash="dash", line_color="red")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="normality_test_bar")
         
         st.markdown("""
         **Análise:**
@@ -699,194 +698,194 @@ def main():
         """)
 
         # 5. Gaussian Mixture Approach
-    st.markdown("---")
-    st.markdown("### 5️⃣ Abordagem com Mistura Gaussiana")
-    
-    st.markdown("""
-    **Por que considerar Misturas Gaussianas?**
-    - Dados reais frequentemente não seguem uma única distribuição normal
-    - Misturas podem capturar subpopulações (ex: jovens saudáveis vs idosos com doenças)
-    - Melhor modelagem de dados multimodais
-    """)
-    
-    from sklearn.mixture import GaussianMixture
-    
-    # Prepare data for GMM analysis
-    gmm_features = ['Age', 'MonthlySalary']
-    X_gmm = filtered_df[gmm_features]
-    
-    # Fit GMMs for each class
-    fig = make_subplots(rows=1, cols=2, 
-                       subplot_titles=("Distribuição para Rejeições", "Distribuição para Aceitações"),
-                       shared_yaxes=True)
-    
-    # Add original data points
-    fig.add_trace(
-        go.Scatter(
-            x=X_gmm[filtered_df['Decision'] == 0]['Age'],
-            y=X_gmm[filtered_df['Decision'] == 0]['MonthlySalary'],
-            mode='markers',
-            name='Rejeita (dados)',
-            marker=dict(color='red', opacity=0.3)
-        ), row=1, col=1
-    )
-    
-    fig.add_trace(
-        go.Scatter(
-            x=X_gmm[filtered_df['Decision'] == 1]['Age'],
-            y=X_gmm[filtered_df['Decision'] == 1]['MonthlySalary'],
-            mode='markers',
-            name='Aceita (dados)',
-            marker=dict(color='green', opacity=0.3)
-        ), row=1, col=2
-    )
-    
-    # Fit and plot GMMs
-    for class_val, color, col in zip([0, 1], ['red', 'green'], [1, 2]):
-        subset = X_gmm[filtered_df['Decision'] == class_val]
+        st.markdown("---")
+        st.markdown("### 5️⃣ Abordagem com Mistura Gaussiana")
         
-        # Fit GMM with 2 components
-        gmm = GaussianMixture(n_components=2, random_state=42)
-        gmm.fit(subset)
+        st.markdown("""
+        **Por que considerar Misturas Gaussianas?**
+        - Dados reais frequentemente não seguem uma única distribuição normal
+        - Misturas podem capturar subpopulações (ex: jovens saudáveis vs idosos com doenças)
+        - Melhor modelagem de dados multimodais
+        """)
         
-        # Create grid for contour plot
-        x_min, x_max = subset['Age'].min() - 1, subset['Age'].max() + 1
-        y_min, y_max = subset['MonthlySalary'].min() - 100, subset['MonthlySalary'].max() + 100
-        xx, yy = np.mgrid[x_min:x_max:100j, y_min:y_max:100j]
-        grid = np.c_[xx.ravel(), yy.ravel()]
+        from sklearn.mixture import GaussianMixture
         
-        # Calculate densities
-        densities = np.exp(gmm.score_samples(grid))
-        densities = densities.reshape(xx.shape)
+        # Prepare data for GMM analysis
+        gmm_features = ['Age', 'MonthlySalary']
+        X_gmm = filtered_df[gmm_features]
         
-        # Add contour plot
+        # Fit GMMs for each class
+        fig = make_subplots(rows=1, cols=2, 
+                           subplot_titles=("Distribuição para Rejeições", "Distribuição para Aceitações"),
+                           shared_yaxes=True)
+        
+        # Add original data points
         fig.add_trace(
-            go.Contour(
-                x=np.linspace(x_min, x_max, 100),
-                y=np.linspace(y_min, y_max, 100),
-                z=densities,
-                showscale=False,
-                name=f'GMM (Classe {class_val})',
-                line=dict(width=0),
-                contours=dict(coloring='lines'),
-                line_color=color
-            ), row=1, col=col
+            go.Scatter(
+                x=X_gmm[filtered_df['Decision'] == 0]['Age'],
+                y=X_gmm[filtered_df['Decision'] == 0]['MonthlySalary'],
+                mode='markers',
+                name='Rejeita (dados)',
+                marker=dict(color='red', opacity=0.3)
+            ), row=1, col=1
         )
         
-        # Add component means
-        for mean in gmm.means_:
+        fig.add_trace(
+            go.Scatter(
+                x=X_gmm[filtered_df['Decision'] == 1]['Age'],
+                y=X_gmm[filtered_df['Decision'] == 1]['MonthlySalary'],
+                mode='markers',
+                name='Aceita (dados)',
+                marker=dict(color='green', opacity=0.3)
+            ), row=1, col=2
+        )
+        
+        # Fit and plot GMMs
+        for class_val, color, col in zip([0, 1], ['red', 'green'], [1, 2]):
+            subset = X_gmm[filtered_df['Decision'] == class_val]
+            
+            # Fit GMM with 2 components
+            gmm = GaussianMixture(n_components=2, random_state=42)
+            gmm.fit(subset)
+            
+            # Create grid for contour plot
+            x_min, x_max = subset['Age'].min() - 1, subset['Age'].max() + 1
+            y_min, y_max = subset['MonthlySalary'].min() - 100, subset['MonthlySalary'].max() + 100
+            xx, yy = np.mgrid[x_min:x_max:100j, y_min:y_max:100j]
+            grid = np.c_[xx.ravel(), yy.ravel()]
+            
+            # Calculate densities
+            densities = np.exp(gmm.score_samples(grid))
+            densities = densities.reshape(xx.shape)
+            
+            # Add contour plot
             fig.add_trace(
-                go.Scatter(
-                    x=[mean[0]],
-                    y=[mean[1]],
-                    mode='markers',
-                    marker=dict(color=color, size=10, symbol='x'),
-                    showlegend=False
+                go.Contour(
+                    x=np.linspace(x_min, x_max, 100),
+                    y=np.linspace(y_min, y_max, 100),
+                    z=densities,
+                    showscale=False,
+                    name=f'GMM (Classe {class_val})',
+                    line=dict(width=0),
+                    contours=dict(coloring='lines'),
+                    line_color=color
                 ), row=1, col=col
             )
-    
-    fig.update_layout(
-        title='Distribuições com Misturas Gaussianas (2 componentes)',
-        xaxis_title='Idade',
-        yaxis_title='Salário Mensal',
-        height=500
-    )
-    st.plotly_chart(fig, use_container_width=True)
-    
-    # Compare model performance
-    st.markdown("**Comparação de Performance:**")
-    
-    # Train models with GMM approach
-    class GMMNaiveBayes:
-        def __init__(self, n_components=2):
-            self.n_components = n_components
-            self.gmms = {}
-            self.priors = {}
             
-        def fit(self, X, y):
-            self.classes = np.unique(y)
-            
-            # Calculate priors
-            for class_val in self.classes:
-                self.priors[class_val] = np.mean(y == class_val)
-                
-            # Fit GMM for each class
-            for class_val in self.classes:
-                subset = X[y == class_val]
-                gmm = GaussianMixture(n_components=self.n_components, random_state=42)
-                gmm.fit(subset)
-                self.gmms[class_val] = gmm
-                
-        def predict_proba(self, X):
-            probas = []
-            for _, sample in X.iterrows():
-                class_probs = {}
-                for class_val in self.classes:
-                    # Prior * likelihood
-                    prob = self.priors[class_val] * np.exp(self.gmms[class_val].score_samples([sample])[0])
-                    class_probs[class_val] = prob
-                
-                # Normalize
-                total = sum(class_probs.values())
-                normalized = {k: v/total for k, v in class_probs.items()}
-                probas.append([normalized[0], normalized[1]])
-            
-            return np.array(probas)
+            # Add component means
+            for mean in gmm.means_:
+                fig.add_trace(
+                    go.Scatter(
+                        x=[mean[0]],
+                        y=[mean[1]],
+                        mode='markers',
+                        marker=dict(color=color, size=10, symbol='x'),
+                        showlegend=False
+                    ), row=1, col=col
+                )
         
-        def predict(self, X):
-            probas = self.predict_proba(X)
-            return np.argmax(probas, axis=1)
-    
-    # Compare models
-    models = {
-        'Naive Bayes Padrão': NaiveBayesClassifier(),
-        'GMM Naive Bayes (2 componentes)': GMMNaiveBayes(n_components=2),
-        'GMM Naive Bayes (3 componentes)': GMMNaiveBayes(n_components=3)
-    }
-    
-    results = []
-    for name, model in models.items():
-        model.fit(X[['Age', 'MonthlySalary']], y)
-        preds = model.predict(X[['Age', 'MonthlySalary']])
-        acc = np.mean(preds == y)
-        results.append({'Modelo': name, 'Acurácia': acc})
-    
-    results_df = pd.DataFrame(results)
-    
-    fig = px.bar(results_df, x='Modelo', y='Acurácia', 
-                text=[f"{acc:.1%}" for acc in results_df['Acurácia']],
-                title='Comparação de Abordagens para Variáveis Contínuas')
-    st.plotly_chart(fig, use_container_width=True)
-    
-    st.markdown("""
-    **Principais Conclusões:**
-    1. A abordagem GMM captura melhor a estrutura multimodal dos dados (visível nos contornos)
-    2. Para Age e MonthlySalary, a mistura de 2 gaussianas por classe:
-       - Desempenho semelhante ao Naive Bayes padrão
-       - Identifica subpopulações distintas (ex: jovens com salários baixos vs médios)
-    3. Aumentar para 3 componentes traz ganhos marginais
-    4. Custo computacional maior que Naive Bayes tradicional
-    """)
-    
-    # Update recommendations section (now section 6)
-    st.markdown("---")
-    st.markdown("### 6️⃣ Recomendações e Melhorias")
-    
-    st.markdown("""
-    **Recomendações para Melhoria do Modelo:**
-    1. **Modelagem de Variáveis Contínuas:**
-       - Implementar GMM para Age e MonthlySalary
-       - Considerar distribuição log-normal para salários
-    2. **Seleção de Features:** 
-       - Manter Age, ChronicDiseases, MonthlySalary e Dependentes
-       - Criar interações entre features (ex: idade × doenças crônicas)
-    3. **Validação:**
-       - Implementar validação cruzada
-       - Testar em conjunto de dados separado
-    4. **Balanceamento:**
-       - Avaliar se classes estão balanceadas
-       - Considerar técnicas como SMOTE se necessário
-    """)
+        fig.update_layout(
+            title='Distribuições com Misturas Gaussianas (2 componentes)',
+            xaxis_title='Idade',
+            yaxis_title='Salário Mensal',
+            height=500
+        )
+        st.plotly_chart(fig, use_container_width=True, key="gmm_plot")
+        
+        # Compare model performance
+        st.markdown("**Comparação de Performance:**")
+        
+        # Train models with GMM approach
+        class GMMNaiveBayes:
+            def __init__(self, n_components=2):
+                self.n_components = n_components
+                self.gmms = {}
+                self.priors = {}
+                
+            def fit(self, X, y):
+                self.classes = np.unique(y)
+                
+                # Calculate priors
+                for class_val in self.classes:
+                    self.priors[class_val] = np.mean(y == class_val)
+                    
+                # Fit GMM for each class
+                for class_val in self.classes:
+                    subset = X[y == class_val]
+                    gmm = GaussianMixture(n_components=self.n_components, random_state=42)
+                    gmm.fit(subset)
+                    self.gmms[class_val] = gmm
+                    
+            def predict_proba(self, X):
+                probas = []
+                for _, sample in X.iterrows():
+                    class_probs = {}
+                    for class_val in self.classes:
+                        # Prior * likelihood
+                        prob = self.priors[class_val] * np.exp(self.gmms[class_val].score_samples([sample])[0])
+                        class_probs[class_val] = prob
+                    
+                    # Normalize
+                    total = sum(class_probs.values())
+                    normalized = {k: v/total for k, v in class_probs.items()}
+                    probas.append([normalized[0], normalized[1]])
+                
+                return np.array(probas)
+            
+            def predict(self, X):
+                probas = self.predict_proba(X)
+                return np.argmax(probas, axis=1)
+        
+        # Compare models
+        models = {
+            'Naive Bayes Padrão': NaiveBayesClassifier(),
+            'GMM Naive Bayes (2 componentes)': GMMNaiveBayes(n_components=2),
+            'GMM Naive Bayes (3 componentes)': GMMNaiveBayes(n_components=3)
+        }
+        
+        results = []
+        for name, model in models.items():
+            model.fit(X[['Age', 'MonthlySalary']], y)
+            preds = model.predict(X[['Age', 'MonthlySalary']])
+            acc = np.mean(preds == y)
+            results.append({'Modelo': name, 'Acurácia': acc})
+        
+        results_df = pd.DataFrame(results)
+        
+        fig = px.bar(results_df, x='Modelo', y='Acurácia', 
+                    text=[f"{acc:.1%}" for acc in results_df['Acurácia']],
+                    title='Comparação de Abordagens para Variáveis Contínuas')
+        st.plotly_chart(fig, use_container_width=True, key="model_comparison_bar")
+        
+        st.markdown("""
+        **Principais Conclusões:**
+        1. A abordagem GMM captura melhor a estrutura multimodal dos dados (visível nos contornos)
+        2. Para Age e MonthlySalary, a mistura de 2 gaussianas por classe:
+           - Desempenho semelhante ao Naive Bayes padrão
+           - Identifica subpopulações distintas (ex: jovens com salários baixos vs médios)
+        3. Aumentar para 3 componentes traz ganhos marginais
+        4. Custo computacional maior que Naive Bayes tradicional
+        """)
+        
+        # Update recommendations section 
+        st.markdown("---")
+        st.markdown("### 6️⃣ Recomendações e Melhorias")
+        
+        st.markdown("""
+        **Recomendações para Melhoria do Modelo:**
+        1. **Modelagem de Variáveis Contínuas:**
+           - Implementar GMM para Age e MonthlySalary
+           - Considerar distribuição log-normal para salários
+        2. **Seleção de Features:** 
+           - Manter Age, ChronicDiseases, MonthlySalary e Dependentes
+           - Criar interações entre features (ex: idade × doenças crônicas)
+        3. **Validação:**
+           - Implementar validação cruzada
+           - Testar em conjunto de dados separado
+        4. **Balanceamento:**
+           - Avaliar se classes estão balanceadas
+           - Considerar técnicas como SMOTE se necessário
+        """)
 
 if __name__ == "__main__":
     main()
