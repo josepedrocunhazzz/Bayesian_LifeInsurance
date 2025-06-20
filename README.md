@@ -4,7 +4,7 @@ Authors:
 José Filipe (josefilipe1@gmail.com)  
 José Cunha (josecunha.8989@gmail.com)  
 
-This project was developed as part of the FIAD course at the University of Coimbra.
+This project was developed as part of the Data Fusion and Analysis course at the University of Coimbra.
 
 Access Options:
 1. Web Application:  
